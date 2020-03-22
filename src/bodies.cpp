@@ -106,9 +106,14 @@ struct interscOrder
 }  // namespace detail
 }  // namespace bodies
 
-void bodies::Body::setDimensions(const shapes::Shape* shape)
+void bodies::Body::setDimensionsDirty(const shapes::Shape* shape)
 {
   useDimensions(shape);
+}
+
+void bodies::Body::setDimensions(const shapes::Shape* shape)
+{
+  setDimensionsDirty(shape);
   updateInternalData();
 }
 
@@ -983,10 +988,11 @@ void bodies::ConvexMesh::updateInternalData()
   pose.translation() = Eigen::Vector3d(pose_ * mesh_data_->box_offset_);
 
   shapes::Box box_shape(mesh_data_->box_size_.x(), mesh_data_->box_size_.y(), mesh_data_->box_size_.z());
-  bounding_box_.setDimensions(&box_shape);
-  bounding_box_.setPose(pose);
-  bounding_box_.setPadding(padding_);
-  bounding_box_.setScale(scale_);
+  bounding_box_.setPoseDirty(pose);
+  bounding_box_.setPaddingDirty(padding_);
+  bounding_box_.setScaleDirty(scale_);
+  bounding_box_.setDimensionsDirty(&box_shape);
+  bounding_box_.updateInternalData();
 
   i_pose_ = pose_.inverse();
   center_ = pose_ * mesh_data_->mesh_center_;
@@ -1237,8 +1243,9 @@ void bodies::BodyVector::addBody(Body* body)
 void bodies::BodyVector::addBody(const shapes::Shape* shape, const Eigen::Isometry3d& pose, double padding)
 {
   bodies::Body* body = bodies::createBodyFromShape(shape);
-  body->setPose(pose);
-  body->setPadding(padding);
+  body->setPoseDirty(pose);
+  body->setPaddingDirty(padding);
+  body->updateInternalData();
   addBody(body);
 }
 
