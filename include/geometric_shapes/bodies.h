@@ -71,9 +71,28 @@ struct BoundingCylinder
   Eigen::Isometry3d pose;
   double radius;
   double length;
-
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
+
+// to be able to use the more efficient Eigen::Transform::linear() instead of .rotation(), we need to check the user has
+// really passed an isometry; to avoid runtime costs, this check is only done as assert, which get compiled-out in
+// release builds
+#ifdef NDEBUG
+#define ASSERT_ISOMETRY(transform) assert(true);
+#else
+#define ASSERT_ISOMETRY(transform)                                                                                     \
+  {                                                                                                                    \
+    if (transform.matrix()(3, 0) != 0 || transform.matrix()(3, 1) != 0 || transform.matrix()(3, 1) != 0 ||             \
+        transform.matrix()(3, 3) != 1 || abs(1.0 - abs((transform).linear().determinant())) >= 1e-6)                   \
+    {                                                                                                                  \
+      std::cerr << "The given transform is not an isometry: " << std::endl << (transform).matrix() << std::endl;       \
+      std::cerr << "Determinant of the linear part of the transformation is " << (transform).linear().determinant()    \
+                << std::endl;                                                                                          \
+      sleep(1);                                                                                                        \
+      assert(!"verify that the transform is an isometry");                                                             \
+    }                                                                                                                  \
+  }
+#endif
 
 class Body;
 
