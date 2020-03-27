@@ -82,12 +82,26 @@ struct BoundingCylinder
 #else
 #define ASSERT_ISOMETRY(transform)                                                                                     \
   {                                                                                                                    \
-    if (transform.matrix()(3, 0) != 0 || transform.matrix()(3, 1) != 0 || transform.matrix()(3, 1) != 0 ||             \
-        transform.matrix()(3, 3) != 1 || abs(1.0 - abs((transform).linear().determinant())) >= 1e-6)                   \
+    if ((transform).matrix()(3, 0) != 0 || (transform).matrix()(3, 1) != 0 || (transform).matrix()(3, 1) != 0 ||       \
+        (transform).matrix()(3, 3) != 1 || std::abs(1.0 - std::abs((transform).linear().determinant())) >= 1e-6)       \
     {                                                                                                                  \
       std::cerr << "The given transform is not an isometry: " << std::endl << (transform).matrix() << std::endl;       \
-      std::cerr << "Determinant of the linear part of the transformation is " << (transform).linear().determinant()    \
-                << std::endl;                                                                                          \
+      std::cerr << "Determinant of the linear part is ";                                                               \
+      fprintf(stderr, "%15.15f\n", std::abs((transform).linear().determinant()));                                      \
+      if (transform.matrix()(3, 0) != 0)                                                                               \
+        std::cerr << "0" << std::endl;                                                                                 \
+      if (transform.matrix()(3, 1) != 0)                                                                               \
+        std::cerr << "1" << std::endl;                                                                                 \
+      if (transform.matrix()(3, 2) != 0)                                                                               \
+        std::cerr << "2" << std::endl;                                                                                 \
+      if (transform.matrix()(3, 3) != 1)                                                                               \
+        std::cerr << "3" << std::endl;                                                                                 \
+      if (std::abs(1.0 - std::abs((transform).linear().determinant())) >= 1e-3)                                        \
+        std::cerr << "a" << std::endl;                                                                                 \
+      if (std::abs(1.0 - std::abs((transform).linear().determinant())) >= 1e-6)                                        \
+        std::cerr << "b" << std::endl;                                                                                 \
+      if (std::abs(1.0 - std::abs((transform).linear().determinant())) >= 1e-9)                                        \
+        std::cerr << "c" << std::endl;                                                                                 \
       sleep(1);                                                                                                        \
       assert(!"verify that the transform is an isometry");                                                             \
     }                                                                                                                  \
